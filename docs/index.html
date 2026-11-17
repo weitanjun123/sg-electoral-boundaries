@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Singapore Electoral Boundaries Timelapse, GE2006–GE2025</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#121214; --bg1:#1b1b1f; --bg2:#26262b; --line:#3a3a41;
+    --gold:#f2c14e; --gold2:#c9972a; --white:#f4f2ec; --mute:#9b9aa3;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:radial-gradient(120% 90% at 50% 0%,#24242a 0%,var(--bg0) 60%);color:var(--white);
+    font-family:Inter,system-ui,sans-serif;min-height:100%}
+  .wrap{max-width:1100px;margin:0 auto;padding:18px 16px 40px}
+  .kicker{font:500 12px/1 Oswald,sans-serif;letter-spacing:.18em;color:var(--gold);text-transform:uppercase}
+  h1{font:400 clamp(40px,8vw,76px)/.92 "Bebas Neue",sans-serif;margin:8px 0 6px;letter-spacing:.01em}
+  h1 span{color:var(--gold)}
+  .dek{color:var(--mute);font-size:14px;line-height:1.5;margin:0 0 14px;max-width:720px}
+
+  .stage{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:900px){.stage{grid-template-columns:1fr 300px}}
+
+  .mapcard{position:relative;background:linear-gradient(180deg,var(--bg1),#151518);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .yearbig{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:12px 60px 0 14px;font:400 clamp(44px,10vw,72px)/1 "Bebas Neue";color:var(--white);letter-spacing:.02em}
+  .yearbig small{font:500 11px/1.2 Oswald;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
+  svg#map{display:block;width:100%;height:auto;touch-action:none;cursor:grab;aspect-ratio:16/10}
+  svg#map.drag{cursor:grabbing}
+  .ed{stroke:none;transition:fill .25s}
+  .edgrc{fill:rgba(190,196,214,var(--a,.12))}
+  .edsmc{fill:url(#hatch)}
+  .ed.hover{fill:rgba(244,242,236,.3)}
+  .ed.sel{fill:rgba(244,242,236,.42)}
+  .bd{fill:none;stroke:var(--white);stroke-opacity:.85;stroke-width:1.1px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+  .ghost{fill:none;stroke:var(--gold);stroke-opacity:.0;stroke-width:1px;vector-effect:non-scaling-stroke;stroke-dasharray:3 3}
+  .chg{fill:var(--gold);opacity:0;transition:opacity .5s}
+  .chg.on{opacity:.8}
+  .chg.pulse{animation:pulse 1.3s ease-out}
+  @keyframes pulse{0%{opacity:1}100%{opacity:.8}}
+  .lbl{font:500 74px Oswald;fill:var(--white);text-anchor:middle;dominant-baseline:middle;pointer-events:none;
+    paint-order:stroke;stroke:#141416;stroke-width:16px;stroke-linejoin:round;letter-spacing:1px}
+  .lbl.smc{fill:#d8d6cf;font-size:62px}
+  .layer{transition:opacity .55s ease}
+  .zoombtns{position:absolute;right:10px;top:12px;display:flex;flex-direction:column;gap:6px}
+  .zoombtns button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:rgba(20,20,22,.8);color:var(--white);font:600 18px Oswald;cursor:pointer}
+  .legend{padding:0 14px 12px;display:flex;gap:12px;flex-wrap:wrap;font:500 11px Oswald;letter-spacing:.08em;color:var(--mute);text-transform:uppercase;pointer-events:none}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px;border:1px solid #777}
+
+  .controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .play{width:46px;height:46px;border-radius:50%;border:none;background:var(--gold);color:#111;font:600 18px Oswald;cursor:pointer;flex:0 0 auto}
+  .years{display:flex;gap:4px;flex:1;min-width:0;position:relative}
+  .years button{flex:1;padding:10px 0;border-radius:9px;border:1px solid var(--line);background:var(--bg1);color:var(--mute);
+    font:400 22px "Bebas Neue";letter-spacing:.04em;cursor:pointer;min-width:0}
+  .years button.on{background:var(--white);color:#111;border-color:var(--white)}
+  .progress{height:3px;background:var(--line);border-radius:2px;margin-top:8px;overflow:hidden}
+  .progress i{display:block;height:100%;width:0;background:var(--gold)}
+  .toggles{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .tg{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--mute);font:500 12px Oswald;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+  .tg.on{border-color:var(--gold);color:var(--gold);background:rgba(242,193,78,.08)}
+
+  .side{display:flex;flex-direction:column;gap:12px}
+  .card{background:var(--bg1);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .card h3{margin:0 0 10px;font:500 12px Oswald;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .stat b{display:block;font:400 34px/1 "Bebas Neue";color:var(--white)}
+  .stat span{font:500 10px Oswald;letter-spacing:.12em;color:var(--mute);text-transform:uppercase}
+  .stat.gold b{color:var(--gold)}
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{font:500 11px Oswald;letter-spacing:.05em;padding:4px 8px;border-radius:6px;background:var(--bg2);color:var(--white);cursor:pointer;border:1px solid transparent}
+  .chip.new{border-color:rgba(242,193,78,.6);color:var(--gold)}
+  .chip.gone{color:var(--mute);text-decoration:line-through;cursor:default}
+  .sub{font:500 10px Oswald;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin:10px 0 6px}
+  .sel-name{font:400 30px/1 "Bebas Neue";letter-spacing:.02em}
+  .sel-meta{color:var(--mute);font-size:13px;margin:4px 0 10px}
+  .bar{display:flex;align-items:center;gap:8px;font-size:12px;margin:5px 0}
+  .bar .t{flex:0 0 46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar .b{flex:1;height:8px;background:var(--bg2);border-radius:4px;overflow:hidden}
+  .bar .b i{display:block;height:100%;background:var(--gold)}
+  .bar .p{flex:0 0 38px;text-align:right;color:var(--mute);font-variant-numeric:tabular-nums}
+  .hint{color:var(--mute);font-size:13px;line-height:1.5}
+  .heatkey{display:flex;gap:10px;font-size:12px;color:var(--mute);flex-wrap:wrap}
+
+  .notes{margin-top:22px;color:var(--mute);font-size:12.5px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px}
+  .notes a{color:var(--gold)}
+  .brand{margin-top:18px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .brand b{font:400 28px "Bebas Neue";letter-spacing:.06em}
+  .brand span{font:500 11px Oswald;letter-spacing:.14em;color:var(--gold);text-transform:uppercase}
+  .tip{position:fixed;pointer-events:none;background:#0e0e10;border:1px solid var(--line);padding:6px 9px;border-radius:7px;font:500 12px Oswald;letter-spacing:.04em;opacity:0;transition:opacity .12s;z-index:5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Singapore · Electoral Boundaries · Timelapse</div>
+  <h1>The map that <span>moves</span></h1>
+  <p class="dek">Every general election, the Electoral Boundaries Review Committee redraws Singapore's constituencies. This is every officially published boundary map from GE2006 to GE2025, one after another. <b style="color:var(--gold)">Gold</b> marks land that moved to a different constituency since the previous election.</p>
+
+  <div class="stage">
+    <div>
+      <div class="mapcard" id="mapcard">
+        <div class="yearbig"><span id="yearTxt">GE2006</span><small id="pollTxt">Polling day</small></div>
+        <svg id="map" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Map of Singapore electoral boundaries">
+          <defs>
+            <pattern id="hatch" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <rect width="40" height="40" fill="rgba(244,242,236,.07)"/>
+              <line x1="0" y1="0" x2="0" y2="40" stroke="rgba(244,242,236,.22)" stroke-width="10"/>
+            </pattern>
+            <clipPath id="landclip"></clipPath>
+            <filter id="soft" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="6"/></filter>
+          </defs>
+          <g id="vp">
+            <g clip-path="url(#landclip)">
+              <g id="base"></g>
+              <g id="layers"></g>
+              <g id="chgLayer"></g>
+              <g id="heatLayer" class="layer" style="opacity:0"></g>
+              <g id="bdLayers"></g>
+            </g>
+            <g id="labels"></g>
+          </g>
+        </svg>
+        <div class="zoombtns"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">−</button><button id="zreset" aria-label="Reset view" style="font-size:13px">⤢</button></div>
+        <div class="legend" id="legend">
+          <span><i class="sw" style="background:rgba(190,196,214,.2)"></i>GRC</span>
+          <span><i class="sw" style="background:repeating-linear-gradient(45deg,rgba(244,242,236,.25) 0 3px,transparent 3px 6px)"></i>SMC</span>
+          <span><i class="sw" style="background:var(--gold);border-color:var(--gold)"></i>Redrawn since last GE</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="play" id="play" aria-label="Play timelapse">▶</button>
+        <div class="years" id="years"></div>
+      </div>
+      <div class="progress"><i id="prog"></i></div>
+      <div class="toggles">
+        <button class="tg on" id="tChg">Redrawn areas</button>
+        <button class="tg on" id="tLbl">Labels</button>
+        <button class="tg" id="tHeat">Churn heatmap 2006→25</button>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card">
+        <h3 id="statsTitle">This election</h3>
+        <div class="stats">
+          <div class="stat"><b id="sSeats">–</b><span>Seats</span></div>
+          <div class="stat"><b id="sGrc">–</b><span>GRCs</span></div>
+          <div class="stat"><b id="sSmc">–</b><span>SMCs</span></div>
+          <div class="stat gold"><b id="sChg">–</b><span>Land redrawn</span></div>
+        </div>
+        <div id="changeLists"></div>
+      </div>
+      <div class="card" id="selCard">
+        <h3>Constituency</h3>
+        <div id="selBody" class="hint">Tap any constituency to see its seats, size, and where its land came from at the last redraw.</div>
+      </div>
+      <div class="card" id="heatCard" style="display:none">
+        <h3>How often each area was redrawn</h3>
+        <div class="heatkey" id="heatKey"></div>
+        <p class="hint" style="margin:10px 0 0">Four redraws between five elections. Each spot is counted once for every redraw that moved it into a different constituency. The lines are the 2025 boundaries.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <b style="color:var(--white)">Data.</b> Boundary shapes are the Elections Department (ELD) "Electoral Boundary" GeoJSON datasets for 2006, 2011, 2015, 2020 and 2025, as published on <a href="https://data.gov.sg/datasets?agencies=Elections%20Department%20(ELD)">data.gov.sg</a>. Seat counts per constituency come from Wikipedia's lists of Singaporean electoral divisions, and each year's total was checked against the official count (84 / 87 / 89 / 93 / 97). GE2006 is the earliest year ELD publishes as map data. Older maps (1988–2001) exist only as images, so they are not included.<br>
+    <b style="color:var(--white)">Method.</b> Every boundary set is clipped to the 2025 coastline, because the older files include territorial sea. This means the earlier maps also show land that was reclaimed later. To find redrawn areas, the map is split into a 100 m grid. A spot keeps its identity only when its old constituency mostly became its new one and the new one was mostly made from the old one. Spots that fail this test are marked redrawn, so a constituency that only changed its name (for example Moulmein-Kallang to Jalan Besar) still counts as redrawn. "Land redrawn" is measured by area, not by number of voters, so large non-residential areas such as Tengah, the catchment and Jurong Island weigh heavily. The "came from" shares on a constituency are also by land area. Shapes are simplified to about 15 m.<br>
+    This page shows boundaries only, with no election results.
+  </div>
+  <div class="brand"><b>DUCKTRADER4444</b><span>Follow for the next deep-dive</span></div>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+(async function(){
+  const NS = "http://www.w3.org/2000/svg";
+  const $ = id => document.getElementById(id);
+  const svg = $("map");
+  let D;
+  try { D = await (await fetch("data.json")).json(); }
+  catch(e){ $("selBody").textContent = "Couldn't load the map data."; return; }
+
+  const YEARS = D.years.map(y=>y.year);
+  const title = s => s.toLowerCase().replace(/(^|[\s-])([a-z])/g,(m,a,b)=>a+b.toUpperCase()).replace(/-/g,"–");
+  const el = (tag, attrs={}, parent) => { const n=document.createElementNS(NS,tag); for(const k in attrs) n.setAttribute(k,attrs[k]); if(parent) parent.appendChild(n); return n; };
+  const hash = s => { let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))|0; return Math.abs(h); };
+
+  // land clip: 2025 constituency shapes (land-only file)
+  const clip = $("landclip");
+  D.years[D.years.length-1].eds.forEach(e => el("path",{d:e.d,"clip-rule":"evenodd"},clip));
+  D.years[D.years.length-1].eds.forEach(e => el("path",{d:e.d,"fill-rule":"evenodd",fill:"#24242a"},$("base")));
+
+  // build one layer per year
+  const layers = {}, bds = {}, lbls = {};
+  D.years.forEach(Y => {
+    const g = el("g",{class:"layer"},$("layers")); g.style.opacity = 0;
+    const b = el("g",{class:"layer"},$("bdLayers")); b.style.opacity = 0;
+    const L = el("g",{class:"layer"},$("labels")); L.style.opacity = 0;
+    Y.eds.forEach(e => {
+      const p = el("path",{d:e.d,class:"ed "+(e.kind==="GRC"?"edgrc":"edsmc"),"fill-rule":"evenodd"},g);
+      if(e.kind==="GRC") p.style.setProperty("--a", (0.06 + (hash(e.name)%5)*0.03).toFixed(3));
+      p.dataset.name = e.name; p.dataset.year = Y.year;
+      el("path",{d:e.d,class:"bd","fill-rule":"evenodd"},b);
+      const [x,y,r] = e.at;
+      if(r > 55){
+        const t = el("text",{x,y,class:"lbl"+(e.kind==="SMC"?" smc":"")},L);
+        t.textContent = title(e.name);
+      }
+    });
+    layers[Y.year]=g; bds[Y.year]=b; lbls[Y.year]=L;
+  });
+  // redrawn overlays
+  const chg = {};
+  D.transitions.forEach(T => { chg[T.to] = el("path",{d:T.d,class:"chg",filter:"url(#soft)"},$("chgLayer")); });
+  // churn heat
+  const heatCols = {1:"rgba(242,193,78,.28)",2:"rgba(242,193,78,.62)",3:"#ffe08a",4:"#ffffff"};
+  Object.entries(D.churn).forEach(([k,d]) => { if(d) el("path",{d,fill:heatCols[k],filter:"url(#soft)"},$("heatLayer")); });
+  $("heatKey").innerHTML = ["1","2","3"].map(k=>`<span><i class="sw" style="background:${heatCols[k]}"></i>${k}× · ${(D.churn_share[k]*100).toFixed(1)}% of land</span>`).join("")
+    + `<span><i class="sw" style="background:transparent"></i>Never · ${(D.churn_share["0"]*100).toFixed(0)}%</span>`;
+
+  // viewBox fitted to land
+  const box = (()=>{ let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+    D.years[D.years.length-1].eds.forEach(e=>{ const re=/M(-?\d+) (-?\d+)|l(-?\d+) (-?\d+)/g; let m,cx=0,cy=0;
+      while((m=re.exec(e.d))){ if(m[1]!==undefined){cx=+m[1];cy=+m[2];} else {cx+=+m[3];cy+=+m[4];} if(cx<x0)x0=cx;if(cy<y0)y0=cy;if(cx>x1)x1=cx;if(cy>y1)y1=cy; } });
+    const pad=120; return {x:x0-pad, y:y0-pad, w:(x1-x0)+2*pad, h:(y1-y0)+2*pad+180}; })();
+  let vb = {...box};
+  const applyVB = () => svg.setAttribute("viewBox",`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+  svg.style.aspectRatio = `${box.w}/${box.h}`;
+  applyVB();
+
+  // state
+  let cur = null, showChg = true, showLbl = true, heat = false, sel = null;
+  const yearsEl = $("years");
+  YEARS.forEach(y => { const b=document.createElement("button"); b.textContent="’"+String(y).slice(2); b.title="GE"+y; b.onclick=()=>{stop();go(y);}; b.dataset.y=y; yearsEl.appendChild(b); });
+
+  function go(y){
+    const prev = cur; cur = y;
+    const Y = D.years.find(v=>v.year===y);
+    YEARS.forEach(v => {
+      const on = v===y && !heat;
+      layers[v].style.opacity = on?1:0; layers[v].style.pointerEvents = on?"auto":"none";
+      bds[v].style.opacity = heat ? (v===2025?1:0) : (v===y?1:0);
+      lbls[v].style.opacity = (showLbl && !heat && v===y)?1:0;
+    });
+    Object.entries(chg).forEach(([to,p]) => {
+      const on = showChg && !heat && +to===y;
+      p.classList.toggle("on", on);
+      p.classList.remove("pulse"); if(on){ void p.getBBox(); p.classList.add("pulse"); }
+    });
+    $("heatLayer").style.opacity = heat?1:0;
+    [...yearsEl.children].forEach(b=>b.classList.toggle("on", +b.dataset.y===y && !heat));
+    $("yearTxt").textContent = heat ? "2006→25" : "GE"+y;
+    $("pollTxt").textContent = heat ? "Times each area was redrawn" : "Polling day · "+Y.poll;
+    $("prog").style.width = heat ? "100%" : ((YEARS.indexOf(y))/(YEARS.length-1)*100)+"%";
+    $("legend").style.opacity = heat?0:1;
+    $("heatCard").style.display = heat?"":"none";
+    // stats
+    const T = D.transitions.find(t=>t.to===y);
+    $("statsTitle").textContent = "GE"+y;
+    $("sSeats").textContent = Y.seats; $("sGrc").textContent = Y.grc; $("sSmc").textContent = Y.smc;
+    $("sChg").textContent = T ? Math.round(T.share*100)+"%" : "—";
+    let h = "";
+    if(T){
+      h += `<div class="sub">New names vs GE${T.frm}</div><div class="chips">${T.born.map(n=>`<span class="chip new" data-n="${n}">${title(n)}</span>`).join("")||'<span class="hint">None</span>'}</div>`;
+      h += `<div class="sub">Gone from the map</div><div class="chips">${T.gone.map(n=>`<span class="chip gone">${title(n)}</span>`).join("")||'<span class="hint">None</span>'}</div>`;
+      h += `<p class="hint" style="margin:10px 0 0">${T.km2.toFixed(0)} km² of land ended up in a different constituency than at GE${T.frm}.</p>`;
+    } else {
+      h += `<p class="hint" style="margin:10px 0 0">Starting point: the GE2006 map, the earliest ELD boundary set published as map data. Press play to step through every redraw.</p>`;
+    }
+    $("changeLists").innerHTML = h;
+    $("changeLists").querySelectorAll(".chip.new").forEach(c=>c.onclick=()=>select(c.dataset.n));
+    if(sel){ const still = Y.eds.find(e=>e.name===sel); still ? select(sel) : clearSel(); }
+  }
+
+  function clearSel(){ sel=null; document.querySelectorAll(".ed.sel").forEach(p=>p.classList.remove("sel"));
+    $("selBody").innerHTML = 'Tap any constituency to see its seats, size, and where its land came from at the last redraw.'; $("selBody").className="hint"; }
+
+  function select(name){
+    sel = name;
+    document.querySelectorAll(".ed.sel").forEach(p=>p.classList.remove("sel"));
+    layers[cur].querySelectorAll(".ed").forEach(p=>{ if(p.dataset.name===name) p.classList.add("sel"); });
+    const Y = D.years.find(v=>v.year===cur), e = Y.eds.find(v=>v.name===name);
+    const T = D.transitions.find(t=>t.to===cur);
+    const lin = T && T.lineage.find(l=>l.name===name);
+    // which years this name existed
+    const span = YEARS.filter(y=>D.years.find(v=>v.year===y).eds.some(v=>v.name===name));
+    let h = `<div class="sel-name">${title(name)} ${e.kind}</div>
+      <div class="sel-meta">${e.seats} seat${e.seats>1?"s":""} · ${e.km2.toFixed(1)} km² of land · on the map in ${span.map(y=>"’"+String(y).slice(2)).join(", ")}</div>`;
+    if(lin){
+      h += `<div class="sub">Land came from (GE${T.frm} map)</div>` + lin.parts.map(([n,s])=>
+        `<div class="bar"><span class="t">${title(n)}</span><span class="b"><i style="width:${(s*100).toFixed(0)}%"></i></span><span class="p">${(s*100).toFixed(0)}%</span></div>`).join("");
+    }
+    $("selBody").innerHTML = h; $("selBody").className = "";
+  }
+
+  // hover + click
+  const tip = $("tip");
+  $("layers").addEventListener("pointermove", ev => {
+    const p = ev.target.closest(".ed"); if(!p || ev.pointerType!=="mouse"){ tip.style.opacity=0; return; }
+    const e = D.years.find(v=>v.year===+p.dataset.year).eds.find(v=>v.name===p.dataset.name);
+    tip.textContent = `${title(e.name)} ${e.kind} · ${e.seats} seat${e.seats>1?"s":""}`;
+    tip.style.left = (ev.clientX+12)+"px"; tip.style.top = (ev.clientY+12)+"px"; tip.style.opacity = 1;
+  });
+  $("layers").addEventListener("pointerleave", ()=> tip.style.opacity=0);
+
+  // pan / zoom (mouse wheel, drag, pinch)
+  const pts = new Map(); let moved = 0, startDist = 0;
+  const toSvg = (cx,cy) => { const r=svg.getBoundingClientRect(); return {x: vb.x + (cx-r.left)/r.width*vb.w, y: vb.y + (cy-r.top)/r.height*vb.h}; };
+  function zoomAt(f, cx, cy){
+    const p = toSvg(cx,cy); const nw = Math.min(box.w, Math.max(box.w/8, vb.w*f)); const k = nw/vb.w;
+    vb = {x: p.x-(p.x-vb.x)*k, y: p.y-(p.y-vb.y)*k, w: nw, h: vb.h*k}; clampVB(); applyVB();
+  }
+  function clampVB(){ vb.x=Math.max(box.x-vb.w*.3, Math.min(box.x+box.w-vb.w*.7, vb.x)); vb.y=Math.max(box.y-vb.h*.3, Math.min(box.y+box.h-vb.h*.7, vb.y)); }
+  svg.addEventListener("wheel", ev => { ev.preventDefault(); zoomAt(ev.deltaY>0?1.15:1/1.15, ev.clientX, ev.clientY); }, {passive:false});
+  svg.addEventListener("pointerdown", ev => { svg.setPointerCapture(ev.pointerId); pts.set(ev.pointerId,{x:ev.clientX,y:ev.clientY}); moved=0;
+    if(pts.size===2){ const [a,b]=[...pts.values()]; startDist=Math.hypot(a.x-b.x,a.y-b.y); } svg.classList.add("drag"); });
+  svg.addEventListener("pointermove", ev => {
+    if(!pts.has(ev.pointerId)) return;
+    const old = pts.get(ev.pointerId); const now = {x:ev.clientX,y:ev.clientY};
+    if(pts.size===1){
+      const r=svg.getBoundingClientRect(); const dx=(now.x-old.x)/r.width*vb.w, dy=(now.y-old.y)/r.height*vb.h;
+      moved += Math.abs(now.x-old.x)+Math.abs(now.y-old.y);
+      if(vb.w<box.w-1){ vb.x-=dx; vb.y-=dy; clampVB(); applyVB(); }
+    } else if(pts.size===2){
+      pts.set(ev.pointerId, now); const [a,b]=[...pts.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(startDist){ zoomAt(startDist/d, (a.x+b.x)/2, (a.y+b.y)/2); } startDist=d; moved=99; return;
+    }
+    pts.set(ev.pointerId, now);
+  });
+  const up = ev => { if(pts.size===1 && moved<6){ const t=document.elementsFromPoint(ev.clientX,ev.clientY).find(n=>n.classList&&n.classList.contains("ed")&&n.parentNode===layers[cur]);
+      if(t && !heat){ t.dataset.name===sel ? clearSel() : select(t.dataset.name); } }
+    pts.delete(ev.pointerId); if(pts.size<2) startDist=0; if(!pts.size) svg.classList.remove("drag"); };
+  svg.addEventListener("pointerup", up); svg.addEventListener("pointercancel", ev=>{pts.delete(ev.pointerId);});
+  const rc = () => { const r=svg.getBoundingClientRect(); return [r.left+r.width/2, r.top+r.height/2]; };
+  $("zin").onclick = ()=>zoomAt(1/1.5,...rc()); $("zout").onclick=()=>zoomAt(1.5,...rc()); $("zreset").onclick=()=>{vb={...box};applyVB();};
+
+  // playback
+  let timer = null;
+  function stop(){ clearInterval(timer); timer=null; $("play").textContent="▶"; $("play").setAttribute("aria-label","Play timelapse"); }
+  function play(){
+    if(heat){ heat=false; $("tHeat").classList.remove("on"); }
+    $("play").textContent="❚❚"; $("play").setAttribute("aria-label","Pause");
+    let i = YEARS.indexOf(cur); if(i===YEARS.length-1){ i=-1; }
+    const step = () => { i++; if(i>=YEARS.length){ stop(); return; } go(YEARS[i]); };
+    step(); timer = setInterval(step, 2400);
+  }
+  $("play").onclick = () => timer ? stop() : play();
+  $("tChg").onclick = e => { showChg=!showChg; e.currentTarget.classList.toggle("on",showChg); go(cur); };
+  $("tLbl").onclick = e => { showLbl=!showLbl; e.currentTarget.classList.toggle("on",showLbl); go(cur); };
+  $("tHeat").onclick = e => { stop(); heat=!heat; e.currentTarget.classList.toggle("on",heat); if(heat) clearSel(); go(cur); };
+  document.addEventListener("keydown", e => { if(e.key==="ArrowRight"){stop();go(YEARS[Math.min(YEARS.length-1,YEARS.indexOf(cur)+1)]);}
+    if(e.key==="ArrowLeft"){stop();go(YEARS[Math.max(0,YEARS.indexOf(cur)-1)]);} if(e.key===" "){e.preventDefault(); timer?stop():play();} });
+
+  go(YEARS[0]);
+})();
+</script>
+</body>
+</html>
