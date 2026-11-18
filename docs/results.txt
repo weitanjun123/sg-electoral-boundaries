@@ -1,0 +1,82 @@
+Swing sample: 105 contested constituency-elections (2011-2025) with a notional previous result
+
+== access_change  n=105  R2=0.51  permutation p (key var)=0.565
+   const          b=+5.153  se=5.579  p=0.358
+   d_access_pp    b=+0.053  se=0.043  p=0.218
+   prev_pap       b=-0.199  se=0.082  p=0.017
+   grc            b=+0.957  se=1.508  p=0.527
+   y2015          b=+14.658  se=1.784  p=0.000
+   y2020          b=-0.685  se=1.932  p=0.724
+   y2025          b=+10.165  se=2.387  p=0.000
+
+== new_station  n=105  R2=0.53  permutation p (key var)=0.041
+   const          b=+4.313  se=5.069  p=0.397
+   new_station    b=+3.637  se=1.759  p=0.041
+   prev_pap       b=-0.186  se=0.077  p=0.017
+   grc            b=+0.186  se=1.570  p=0.906
+   y2015          b=+14.569  se=1.705  p=0.000
+   y2020          b=-1.482  se=1.963  p=0.452
+   y2025          b=+9.752  se=2.311  p=0.000
+
+== access_level_swing  n=105  R2=0.55  permutation p (key var)=0.005
+   const          b=-0.384  se=5.902  p=0.948
+   access_pp      b=+0.082  se=0.031  p=0.008
+   prev_pap       b=-0.179  se=0.083  p=0.033
+   grc            b=+1.490  se=1.439  p=0.303
+   y2015          b=+14.166  se=1.834  p=0.000
+   y2020          b=-1.769  se=2.069  p=0.395
+   y2025          b=+9.046  se=2.426  p=0.000
+
+== access_level_share  n=132  R2=0.11  permutation p (key var)=0.304
+   const          b=+61.158  se=3.343  p=0.000
+   access_pp      b=+0.036  se=0.031  p=0.253
+   grc            b=+1.968  se=1.717  p=0.254
+   y2011          b=-4.415  se=3.241  p=0.176
+   y2015          b=+4.209  se=3.260  p=0.199
+   y2020          b=-3.186  se=3.253  p=0.329
+   y2025          b=+1.251  se=3.543  p=0.725
+
+== nsewl_2015  n=28  R2=0.07  permutation p (key var)=0.694
+   const          b=+6.279  se=6.625  p=0.353
+   nsew_pp        b=+0.010  se=0.033  p=0.764
+   prev_pap       b=+0.007  se=0.116  p=0.956
+   grc            b=+2.118  se=1.869  p=0.268
+
+== ewwest_2025  n=32  R2=0.13  permutation p (key var)=0.106
+   const          b=+17.396  se=12.960  p=0.190
+   ewwest_pp      b=+0.120  se=0.060  p=0.056
+   prev_pap       b=-0.262  se=0.208  p=0.218
+   grc            b=+2.086  se=3.679  p=0.575
+
+== new_station_robust  n=105  R2=0.61  permutation p (key var)=0.016
+   const          b=+6.883  se=5.403  p=0.206
+   new_station    b=+3.931  se=1.665  p=0.020
+   prev_pap       b=-0.185  se=0.082  p=0.025
+   grc            b=+0.266  se=1.471  p=0.857
+   new_homes_pp   b=-0.041  se=0.060  p=0.503
+   wp_challenger  b=-7.280  se=1.533  p=0.000
+   y2015          b=+14.197  se=1.569  p=0.000
+   y2020          b=-3.130  se=2.087  p=0.137
+   y2025          b=+8.411  se=2.089  p=0.000
+
+== access_level_swing_robust  n=105  R2=0.62  permutation p (key var)=0.004
+   const          b=+2.545  se=6.315  p=0.688
+   access_pp      b=+0.078  se=0.026  p=0.003
+   prev_pap       b=-0.182  se=0.089  p=0.043
+   grc            b=+1.611  se=1.316  p=0.224
+   new_homes_pp   b=-0.027  se=0.051  p=0.601
+   wp_challenger  b=-7.000  se=1.408  p=0.000
+   y2015          b=+13.783  se=1.649  p=0.000
+   y2020          b=-3.288  se=2.137  p=0.127
+   y2025          b=+7.815  se=2.177  p=0.001
+
+== access_change_robust  n=105  R2=0.58  permutation p (key var)=0.625
+   const          b=+7.774  se=5.943  p=0.194
+   d_access_pp    b=+0.042  se=0.044  p=0.339
+   prev_pap       b=-0.199  se=0.087  p=0.024
+   grc            b=+1.104  se=1.407  p=0.435
+   new_homes_pp   b=-0.047  se=0.057  p=0.407
+   wp_challenger  b=-6.996  se=1.596  p=0.000
+   y2015          b=+14.337  se=1.682  p=0.000
+   y2020          b=-2.051  se=2.093  p=0.330
+   y2025          b=+8.999  se=2.241  p=0.000

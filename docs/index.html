@@ -88,6 +88,36 @@
   .brand{margin-top:18px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
   .brand b{font:400 28px "Bebas Neue";letter-spacing:.06em}
   .brand span{font:500 11px Oswald;letter-spacing:.14em;color:var(--gold);text-transform:uppercase}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .seg button{padding:8px 14px;border:none;background:transparent;color:var(--mute);font:500 12px Oswald;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+  .seg button.on{background:var(--white);color:#111}
+  .stack{display:flex;height:22px;border-radius:6px;overflow:hidden;gap:2px;margin:6px 0 10px}
+  .stack i{display:block;height:100%}
+  .prow{display:flex;align-items:center;gap:8px;font-size:12.5px;margin:4px 0}
+  .prow .dot{width:10px;height:10px;border-radius:3px;flex:0 0 auto}
+  .prow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .prow .v{color:var(--mute);font-variant-numeric:tabular-nums}
+  .prow .pc{width:48px;text-align:right;font-variant-numeric:tabular-nums}
+  .big2{display:flex;gap:16px;margin:2px 0 4px}
+  .big2 div b{display:block;font:400 34px/1 "Bebas Neue"}
+  .big2 div span{font:500 10px Oswald;letter-spacing:.12em;color:var(--mute);text-transform:uppercase}
+  .ramp{display:flex;gap:2px}
+  .ramp i{width:20px;height:10px;border-radius:2px}
+  section.find{margin-top:26px}
+  section.find h2{font:400 clamp(30px,6vw,48px)/.95 "Bebas Neue";margin:0 0 6px;letter-spacing:.01em}
+  section.find h2 span{color:var(--gold)}
+  .grid2{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:900px){.grid2{grid-template-columns:1.4fr 1fr}}
+  svg.chart{width:100%;height:auto;display:block}
+  .ax{stroke:var(--line);stroke-width:1}
+  .axl{fill:var(--mute);font:400 11px Inter}
+  .pt{stroke:var(--bg1);stroke-width:2}
+  table.t{width:100%;border-collapse:collapse;font-size:13px}
+  table.t td,table.t th{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+  table.t th{font:500 10px Oswald;letter-spacing:.12em;color:var(--mute);text-transform:uppercase}
+  table.t td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .verdict{display:inline-block;font:500 10px Oswald;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;border-radius:5px;border:1px solid var(--line);color:var(--mute);white-space:nowrap}
+  .verdict.yes{border-color:var(--gold);color:var(--gold)}
   .tip{position:fixed;pointer-events:none;background:#0e0e10;border:1px solid var(--line);padding:6px 9px;border-radius:7px;font:500 12px Oswald;letter-spacing:.04em;opacity:0;transition:opacity .12s;z-index:5}
 </style>
 </head>
@@ -135,6 +165,7 @@
       </div>
       <div class="progress"><i id="prog"></i></div>
       <div class="toggles">
+        <div class="seg" role="tablist"><button id="mB" class="on">Boundaries</button><button id="mV">Votes</button></div>
         <button class="tg on" id="tChg">Redrawn areas</button>
         <button class="tg on" id="tLbl">Labels</button>
         <button class="tg" id="tHeat">Churn heatmap 2006→25</button>
@@ -152,6 +183,10 @@
         </div>
         <div id="changeLists"></div>
       </div>
+      <div class="card" id="voteCard">
+        <h3 id="voteTitle">Votes</h3>
+        <div id="voteBody"></div>
+      </div>
       <div class="card" id="selCard">
         <h3>Constituency</h3>
         <div id="selBody" class="hint">Tap any constituency to see its seats, size, and where its land came from at the last redraw.</div>
@@ -164,10 +199,32 @@
     </div>
   </div>
 
+  <section class="find" id="findings">
+    <div class="kicker">The test</div>
+    <h2>Does a good MRT <span>win votes?</span></h2>
+    <p class="dek">For each contested constituency from GE2011 to GE2025, the swing is the change in PAP vote share against what the same homes voted at the previous election, rebuilt block by block when the boundaries moved. The swing was then tested against MRT access (the share of HDB homes within 800 m of a station on polling day), new stations opened since the last election, and exposure to the two biggest breakdowns before an election. Every test also controls for the national swing that year, the previous result, and GRC vs SMC.</p>
+    <div class="grid2">
+      <div class="card">
+        <h3>Swing vs MRT access, relative to that year's national swing</h3>
+        <div id="scatter"></div>
+        <div class="heatkey" style="margin-top:6px"><span><i class="sw" style="background:var(--gold);border-color:var(--gold)"></i>New station nearby since last GE</span><span><i class="sw" style="background:transparent;border-color:#8a8990"></i>No new station</span></div>
+      </div>
+      <div class="card">
+        <h3>Verdict in one line each</h3>
+        <div id="verdicts"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px;overflow-x:auto">
+      <h3>All tests</h3>
+      <table class="t" id="testTable"></table>
+      <p class="hint" style="margin:10px 0 0">"pts" means percentage points of PAP vote share. p is from regressions with robust (HC1) errors. "Shuffle p" comes from re-running each test 5,000 times with the MRT measure shuffled between constituencies in the same election, which checks the result without relying on textbook assumptions. Nine tests were run, so one or two p-values under 0.05 could appear by luck alone. A result only counts here if it stays under about 0.006 (0.05 ÷ 9).</p>
+    </div>
+  </section>
+
   <div class="notes">
     <b style="color:var(--white)">Data.</b> Boundary shapes are the Elections Department (ELD) "Electoral Boundary" GeoJSON datasets for 2006, 2011, 2015, 2020 and 2025, as published on <a href="https://data.gov.sg/datasets?agencies=Elections%20Department%20(ELD)">data.gov.sg</a>. Seat counts per constituency come from Wikipedia's lists of Singaporean electoral divisions, and each year's total was checked against the official count (84 / 87 / 89 / 93 / 97). GE2006 is the earliest year ELD publishes as map data. Older maps (1988–2001) exist only as images, so they are not included.<br>
     <b style="color:var(--white)">Method.</b> Every boundary set is clipped to the 2025 coastline, because the older files include territorial sea. This means the earlier maps also show land that was reclaimed later. To find redrawn areas, the map is split into a 100 m grid. A spot keeps its identity only when its old constituency mostly became its new one and the new one was mostly made from the old one. Spots that fail this test are marked redrawn, so a constituency that only changed its name (for example Moulmein-Kallang to Jalan Besar) still counts as redrawn. "Land redrawn" is measured by area, not by number of voters, so large non-residential areas such as Tengah, the catchment and Jurong Island weigh heavily. The "came from" shares on a constituency are also by land area. Shapes are simplified to about 15 m.<br>
-    This page shows boundaries only, with no election results.
+    <b style="color:var(--white)">Votes.</b> ELD official results by candidate, GE2006–GE2025 (data.gov.sg "Parliamentary General Election Results by Candidate"). National totals are valid votes in contested constituencies only. Walkovers (7 in 2006, 1 in 2011, 1 in 2025) had no vote. The 2006, 2011, 2015, 2020 and 2025 PAP shares this page computes (66.6%, 60.1%, 69.9%, 61.2%, 65.6%) match the official national figures. Results are only published per constituency, so there are no ward-level counts.<br><b style="color:var(--white)">MRT test.</b> Homes are HDB residential blocks (HDB Property Information on data.gov.sg, with coordinates), counted from their completion year. Private housing is not included. Station locations come from LTA. Opening dates for each stage come from LTA and sgtrains.com. LRT is excluded. "Within 800 m" means straight-line distance. The breakdown tests count homes whose nearest station was on the NSL/EWL (GE2015, after the 7 Jul 2015 breakdown) or was one of the nine EWL stations from Boon Lay to Queenstown (GE2025, after the 25–30 Sep 2024 disruption). This is a correlation study of about 105 constituency results, so it cannot prove cause. The code is in the repo.
   </div>
   <div class="brand"><b>DUCKTRADER4444</b><span>Follow for the next deep-dive</span></div>
 </div>
@@ -179,10 +236,25 @@
   const $ = id => document.getElementById(id);
   const svg = $("map");
   let D;
-  try { D = await (await fetch("data.json")).json(); }
+  let R;
+  try { [D, R] = await Promise.all([fetch("data.json").then(r=>r.json()), fetch("results.json").then(r=>r.json())]); }
   catch(e){ $("selBody").textContent = "Couldn't load the map data."; return; }
 
   const YEARS = D.years.map(y=>y.year);
+  // ----- parties: fixed colour per party (categorical palette, dark steps), everything else = Other
+  const PCOL = {PAP:"#3987e5",WP:"#d95926",PSP:"#199e70",SDP:"#c98500",NSP:"#d55181",RP:"#0ca30c",SDA:"#9085e9"};
+  const OTHER = "#8a8990";
+  const PNAME = {PAP:"People's Action Party",WP:"Workers' Party",PSP:"Progress Singapore Party",SDP:"Singapore Democratic Party",
+    NSP:"National Solidarity Party",RP:"Reform Party",SDA:"Singapore Democratic Alliance",SPP:"Singapore People's Party",
+    PV:"Peoples Voice",RDU:"Red Dot United",PAR:"People's Alliance for Reform",SGF:"Singaporeans First",PPP:"People's Power Party",
+    SUP:"Singapore United Party",Independent:"Independent",INDP:"Independent"};
+  const pcol = p => PCOL[p] || OTHER;
+  const fmt = n => n.toLocaleString("en-SG");
+  // PAP vote-share bins: one hue (gold), dark -> bright
+  const BINS = [[0,45],[45,50],[50,55],[55,60],[60,65],[65,70],[70,75],[75,101]];
+  const BCOL = ["#3b3226","#5a4826","#7a5e27","#9a7427","#b98a29","#d6a131","#ecb941","#ffd56a"];
+  const shareCol = s => BCOL[BINS.findIndex(([a,b])=>s*100>=a && s*100<b)];
+  let mode = "bound";
   const title = s => s.toLowerCase().replace(/(^|[\s-])([a-z])/g,(m,a,b)=>a+b.toUpperCase()).replace(/-/g,"–");
   const el = (tag, attrs={}, parent) => { const n=document.createElementNS(NS,tag); for(const k in attrs) n.setAttribute(k,attrs[k]); if(parent) parent.appendChild(n); return n; };
   const hash = s => { let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))|0; return Math.abs(h); };
@@ -230,6 +302,21 @@
   svg.style.aspectRatio = `${box.w}/${box.h}`;
   applyVB();
 
+  const LEGEND0 = $("legend").innerHTML;
+  function renderVotes(y){
+    const N = R.national.find(n=>n.year===y);
+    const opp = N.valid - N.parties.find(p=>p[0]==="PAP")[1];
+    // fold to the 7 coloured parties + Other
+    const fold = {}; N.parties.forEach(([p,v])=>{ const k = PCOL[p]?p:"Other"; fold[k]=(fold[k]||0)+v; });
+    const rows = Object.entries(fold).sort((a,b)=> (a[0]==="Other")-(b[0]==="Other") || b[1]-a[1]);
+    $("voteTitle").textContent = `GE${y} · valid votes`;
+    $("voteBody").innerHTML = `
+      <div class="big2"><div><b>${(N.pap*100).toFixed(1)}%</b><span>PAP</span></div><div><b>${(100-N.pap*100).toFixed(1)}%</b><span>All opposition</span></div></div>
+      <div class="hint" style="font-size:12px">${fmt(N.valid-opp)} vs ${fmt(opp)} votes · ${N.contested} contested${N.walkovers.length?` · ${N.walkovers.length} walkover${N.walkovers.length>1?"s":""}`:""}</div>
+      <div class="stack" role="img" aria-label="Vote share by party">${rows.map(([p,v])=>`<i title="${p} ${(v/N.valid*100).toFixed(1)}%" style="width:${v/N.valid*100}%;background:${p==="Other"?OTHER:pcol(p)}"></i>`).join("")}</div>
+      ${rows.map(([p,v])=>`<div class="prow"><i class="dot" style="background:${p==="Other"?OTHER:pcol(p)}"></i><span class="nm">${p==="Other"?"Other parties & independents":(PNAME[p]||p)+" ("+p+")"}</span><span class="v">${fmt(v)}</span><span class="pc">${(v/N.valid*100).toFixed(1)}%</span></div>`).join("")}`;
+  }
+
   // state
   let cur = null, showChg = true, showLbl = true, heat = false, sel = null;
   const yearsEl = $("years");
@@ -250,6 +337,17 @@
       p.classList.remove("pulse"); if(on){ void p.getBBox(); p.classList.add("pulse"); }
     });
     $("heatLayer").style.opacity = heat?1:0;
+    const votes = mode==="votes" && !heat;
+    layers[y].querySelectorAll(".ed").forEach(p=>{
+      if(!votes){ p.style.fill=""; return; }
+      const r = R.eds[y][p.dataset.name];
+      p.style.fill = r.walkover ? "url(#hatch)" : shareCol(r.pap);
+    });
+    if(votes) Object.values(chg).forEach(p=>p.classList.remove("on","pulse"));
+    $("legend").innerHTML = votes
+      ? `<span>PAP share</span><span class="ramp">${BCOL.map(c=>`<i style="background:${c}"></i>`).join("")}</span><span>&lt;45% → 75%+</span><span><i class="sw" style="background:repeating-linear-gradient(45deg,rgba(244,242,236,.25) 0 3px,transparent 3px 6px)"></i>Walkover</span>`
+      : LEGEND0;
+    renderVotes(y);
     [...yearsEl.children].forEach(b=>b.classList.toggle("on", +b.dataset.y===y && !heat));
     $("yearTxt").textContent = heat ? "2006→25" : "GE"+y;
     $("pollTxt").textContent = heat ? "Times each area was redrawn" : "Polling day · "+Y.poll;
@@ -288,6 +386,17 @@
     const span = YEARS.filter(y=>D.years.find(v=>v.year===y).eds.some(v=>v.name===name));
     let h = `<div class="sel-name">${title(name)} ${e.kind}</div>
       <div class="sel-meta">${e.seats} seat${e.seats>1?"s":""} · ${e.km2.toFixed(1)} km² of land · on the map in ${span.map(y=>"’"+String(y).slice(2)).join(", ")}</div>`;
+    const rr = R.eds[cur][name];
+    h += `<div class="sub">Votes, GE${cur}</div>`;
+    if(rr.walkover) h += `<div class="hint">Walkover: only the ${rr.parties[0][0]} team was nominated, so there was no vote.</div>`;
+    else {
+      h += rr.parties.map(([p,v])=>`<div class="prow"><i class="dot" style="background:${pcol(p)}"></i><span class="nm">${PNAME[p]||p}</span><span class="v">${fmt(v)}</span><span class="pc">${(v/rr.total*100).toFixed(1)}%</span></div>`).join("");
+      const F = R.features.find(f=>f.year===cur && f.name===name);
+      if(F && F.prev_pap!=null && (F.prev_walkover_share||0)<=.25){
+        const sw = (rr.pap-F.prev_pap)*100;
+        h += `<div class="hint" style="margin-top:6px">PAP ${sw>=0?"+":""}${sw.toFixed(1)} pts vs what the same homes voted at GE${YEARS[YEARS.indexOf(cur)-1]}${F.access!=null?` · ${Math.round(F.access*100)}% of HDB homes within 800 m of MRT`:""}${F.new_stations&&F.new_stations.length?` · new nearby: ${F.new_stations.map(s=>s.trim()).join(", ")}`:""}</div>`;
+      }
+    }
     if(lin){
       h += `<div class="sub">Land came from (GE${T.frm} map)</div>` + lin.parts.map(([n,s])=>
         `<div class="bar"><span class="t">${title(n)}</span><span class="b"><i style="width:${(s*100).toFixed(0)}%"></i></span><span class="p">${(s*100).toFixed(0)}%</span></div>`).join("");
@@ -300,7 +409,8 @@
   $("layers").addEventListener("pointermove", ev => {
     const p = ev.target.closest(".ed"); if(!p || ev.pointerType!=="mouse"){ tip.style.opacity=0; return; }
     const e = D.years.find(v=>v.year===+p.dataset.year).eds.find(v=>v.name===p.dataset.name);
-    tip.textContent = `${title(e.name)} ${e.kind} · ${e.seats} seat${e.seats>1?"s":""}`;
+    const rr = R.eds[p.dataset.year][e.name];
+    tip.textContent = `${title(e.name)} ${e.kind} · ${e.seats} seat${e.seats>1?"s":""}` + (mode==="votes" ? (rr.walkover?" · walkover":` · PAP ${(rr.pap*100).toFixed(1)}%`) : "");
     tip.style.left = (ev.clientX+12)+"px"; tip.style.top = (ev.clientY+12)+"px"; tip.style.opacity = 1;
   });
   $("layers").addEventListener("pointerleave", ()=> tip.style.opacity=0);
@@ -352,6 +462,58 @@
   $("tHeat").onclick = e => { stop(); heat=!heat; e.currentTarget.classList.toggle("on",heat); if(heat) clearSel(); go(cur); };
   document.addEventListener("keydown", e => { if(e.key==="ArrowRight"){stop();go(YEARS[Math.min(YEARS.length-1,YEARS.indexOf(cur)+1)]);}
     if(e.key==="ArrowLeft"){stop();go(YEARS[Math.max(0,YEARS.indexOf(cur)-1)]);} if(e.key===" "){e.preventDefault(); timer?stop():play();} });
+
+  $("mB").onclick = ()=>{ mode="bound"; $("mB").classList.add("on"); $("mV").classList.remove("on"); $("tChg").style.display=""; go(cur); };
+  $("mV").onclick = ()=>{ mode="votes"; $("mV").classList.add("on"); $("mB").classList.remove("on"); $("tChg").style.display="none"; if(heat){heat=false;$("tHeat").classList.remove("on");} go(cur); };
+
+  // ----- findings: scatter of swing (minus that year's mean) vs access
+  (function(){
+    const P = R.swing_points; const mean = {};
+    YEARS.forEach(y=>{ const s=P.filter(p=>p.year===y); if(s.length) mean[y]=s.reduce((a,p)=>a+p.swing,0)/s.length; });
+    const pts = P.map(p=>({...p, rel:p.swing-mean[p.year]}));
+    const W=640,H=380,m={l:44,r:14,t:12,b:40}; const X=v=>m.l+v/100*(W-m.l-m.r);
+    const ymax=Math.ceil(Math.max(...pts.map(p=>Math.abs(p.rel)))/5)*5; const Y=v=>m.t+(ymax-v)/(2*ymax)*(H-m.t-m.b);
+    let g=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Scatter of PAP swing against MRT access">`;
+    for(let v=-ymax; v<=ymax; v+=5){ g+=`<line class="ax" x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}" ${v===0?'style="stroke:#6a6a72"':'stroke-opacity=".45"'}/><text class="axl" x="${m.l-6}" y="${Y(v)+4}" text-anchor="end">${v>0?"+":""}${v}</text>`; }
+    for(let v=0; v<=100; v+=25) g+=`<text class="axl" x="${X(v)}" y="${H-m.b+16}" text-anchor="middle">${v}%</text>`;
+    g+=`<text class="axl" x="${(W+m.l)/2}" y="${H-4}" text-anchor="middle">Share of HDB homes within 800 m of an MRT station</text>`;
+    g+=`<text class="axl" x="${m.l}" y="${m.t+2}" dy="-2">PAP swing vs national, pts</text>`;
+    pts.sort((a,b)=>(a.new.length>0)-(b.new.length>0)).forEach(p=>{
+      const isNew=p.new.length>0;
+      g+=`<circle cx="${X(p.access)}" cy="${Y(p.rel)}" r="${isNew?6:5}" style="fill:${isNew?"var(--gold)":"transparent"};stroke:${isNew?"var(--bg1)":"#8a8990"};stroke-width:${isNew?2:1.6}px" data-t="GE${p.year} ${title(p.name)}: PAP ${p.swing>=0?"+":""}${p.swing} pts (${p.rel>=0?"+":""}${p.rel.toFixed(1)} vs national) · ${p.access}% near MRT${isNew?" · new: "+p.new.map(s=>s.trim()).join(", "):""}"><title>${p.name}</title></circle>`;
+    });
+    g+=`</svg>`; $("scatter").innerHTML=g;
+    $("scatter").querySelectorAll("circle").forEach(c=>{
+      c.addEventListener("pointerenter",ev=>{ tip.textContent=c.dataset.t; tip.style.opacity=1; });
+      c.addEventListener("pointermove",ev=>{ tip.style.left=Math.min(ev.clientX+12, innerWidth-260)+"px"; tip.style.top=(ev.clientY+12)+"px"; });
+      c.addEventListener("pointerleave",()=>tip.style.opacity=0);
+      c.addEventListener("click",ev=>{ tip.textContent=c.dataset.t; tip.style.left=Math.min(ev.clientX+12, innerWidth-260)+"px"; tip.style.top=(ev.clientY+12)+"px"; tip.style.opacity=1; });
+    });
+
+    const T = R.tests, BON = 0.05/9;
+    const fx = (k, key, per) => { const c=T[k].coef[key]; return `${c.b*per>=0?"+":""}${(c.b*per).toFixed(1)} pts`; };
+    const rows = [
+      ["new_station_robust","new_station",1,"A new MRT station opened within 800 m of the constituency's homes since the last GE","per constituency with one"],
+      ["access_change_robust","d_access_pp",10,"Share of homes that newly came within 800 m of a station","per +10% of homes"],
+      ["access_level_swing_robust","access_pp",10,"Share of homes within 800 m of a station (well-connected vs not)","per +10% of homes"],
+      ["access_level_share","access_pp",10,"Same, but against the PAP share itself, not the swing","per +10% of homes"],
+      ["nsewl_2015","nsew_pp",10,"GE2015: homes relying on the NSL/EWL after the 7 Jul 2015 breakdown","per +10% of homes"],
+      ["ewwest_2025","ewwest_pp",10,"GE2025: homes relying on the Boon Lay–Queenstown EWL after the Sep 2024 six-day disruption","per +10% of homes"],
+    ];
+    const verdict = (k,key) => { const c=T[k].coef[key], pp=T[k].perm_p;
+      if(c.p<BON && pp<BON) return ['yes','Link holds']; if(c.p<.05 || pp<.05) return ['','Weak / could be luck']; return ['','No link']; };
+    $("testTable").innerHTML = `<tr><th>What was tested</th><th>Effect on PAP swing</th><th>p</th><th>Shuffle p</th><th>n</th><th>Verdict</th></tr>` +
+      rows.map(([k,key,per,lab,unit])=>{ const c=T[k].coef[key], v=verdict(k,key);
+        return `<tr><td>${lab}</td><td class="num">${fx(k,key,per)}<br><span class="hint" style="font-size:11px">${unit}</span></td><td class="num">${c.p.toFixed(3)}</td><td class="num">${T[k].perm_p.toFixed(3)}</td><td class="num">${T[k].n}</td><td><span class="verdict ${v[0]}">${v[1]}</span></td></tr>`; }).join("");
+    const vb = (k,key)=>verdict(k,key)[1];
+    $("verdicts").innerHTML = `
+      <div class="prow"><span class="verdict ${verdict("access_level_swing_robust","access_pp")[0]}">${vb("access_level_swing_robust","access_pp")}</span><span class="nm" style="white-space:normal">Better-connected constituencies swung toward the PAP more, or away from it less: ${fx("access_level_swing_robust","access_pp",10)} for every extra 10% of homes near a station.</span></div>
+      <div class="prow"><span class="verdict">${vb("new_station_robust","new_station")}</span><span class="nm" style="white-space:normal">A new station nearby went with ${fx("new_station_robust","new_station",1)}, but that doesn't clear the bar for nine tests.</span></div>
+      <div class="prow"><span class="verdict">${vb("access_change_robust","d_access_pp")}</span><span class="nm" style="white-space:normal">Homes actually <i>gaining</i> MRT access did not swing differently. That cuts against "a new line buys votes".</span></div>
+      <div class="prow"><span class="verdict">${vb("nsewl_2015","nsew_pp")}</span><span class="nm" style="white-space:normal">There's no sign voters punished the PAP for the 2015 NSL/EWL breakdown.</span></div>
+      <div class="prow"><span class="verdict">${vb("ewwest_2025","ewwest_pp")}</span><span class="nm" style="white-space:normal">Areas hit by the 2024 EWL disruption did not swing against the PAP. If anything the sign is the other way.</span></div>
+      <p class="hint" style="margin:10px 0 0">Bottom line: well-connected areas lean slightly more toward the PAP over time. But new lines and breakdowns don't move votes in any way this data can detect. The bigger drivers are the national mood each year (+14 pts in 2015, +8 in 2025 vs 2011) and whether the main challenger was the WP (about −7 pts).</p>`;
+  })();
 
   go(YEARS[0]);
 })();

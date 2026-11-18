@@ -1,6 +1,6 @@
 # Singapore Electoral Boundaries Timelapse (GE2006 → GE2025)
 
-An interactive map that steps through every official Singapore electoral boundary map published as map data, one general election after another. Land that moved to a different constituency since the previous election is highlighted. **Boundaries only, no election results.**
+An interactive map that steps through every official Singapore electoral boundary map published as map data, one general election after another. Land that moved to a different constituency since the previous election is highlighted. Also shows official vote counts (national + per constituency, by party) and tests whether MRT access or breakdowns are linked to PAP vote swings.
 
 Part of the DUCKTRADER4444 deep-dive series.
 
@@ -10,12 +10,16 @@ Part of the DUCKTRADER4444 deep-dive series.
 |---|---|
 | `data/raw/` | ELD "Electoral Boundary" GeoJSON for 2006, 2011, 2015, 2020, 2025 (unchanged copies of the data.gov.sg files) |
 | `scripts/process.py` | Builds `docs/data.json`: simplified SVG paths, 100 m grid change detection, lineage, churn heatmap |
-| `docs/` | The page (`index.html` + `data.json`), ready for GitHub Pages |
+| `data/raw/results/` | ELD results by candidate, GE1955–GE2025 (data.gov.sg) |
+| `data/raw/hdb/`, `data/raw/mrt/` | HDB blocks (units, year completed, coordinates) and MRT stations, from `sg-transit-planner` |
+| `scripts/analysis.py` | Vote totals, notional previous results, MRT access features, regressions → `docs/results.json` + `docs/results.txt` |
+| `docs/` | The page (`index.html` + `data.json` + `results.json`), ready for GitHub Pages |
 
 ## Rebuild
 
 ```bash
 python3 scripts/process.py data/raw docs/data.json   # needs numpy, scipy, matplotlib
+python3 scripts/analysis.py data/raw docs/results.json
 ```
 
 ## Method
